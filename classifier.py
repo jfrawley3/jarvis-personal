@@ -22,6 +22,7 @@ Categories:
 - life_log: idea, decision, thought, realized, social, met with, learned, insight
 - personality: personality, tone, mode, style
 - desktop: screen, click, type, move mouse, open app, take screenshot, what's on my screen, control computer
+- web_search: search the web, look up, find info, latest news, current price, what is, who is, recent updates
 - general: greeting, status, how are you, help, what can you do
 
 Return ONLY valid JSON like: {"categories": ["finances", "mood"]}

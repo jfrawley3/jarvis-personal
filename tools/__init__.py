@@ -1,5 +1,6 @@
 from tools.finances import TOOL_DEFINITIONS as FINANCE_TOOLS, TOOL_HANDLERS as FINANCE_HANDLERS
 from tools.desktop import TOOL_DEFINITIONS as DESKTOP_TOOLS, TOOL_HANDLERS as DESKTOP_HANDLERS
+from tools.web_search import TOOL_DEFINITIONS as WEB_SEARCH_TOOLS, TOOL_HANDLERS as WEB_SEARCH_HANDLERS
 from tools.todos import TOOL_DEFINITIONS as TODO_TOOLS, TOOL_HANDLERS as TODO_HANDLERS
 from tools.mood import TOOL_DEFINITIONS as MOOD_TOOLS, TOOL_HANDLERS as MOOD_HANDLERS
 from tools.fitness import TOOL_DEFINITIONS as FITNESS_TOOLS, TOOL_HANDLERS as FITNESS_HANDLERS
@@ -16,6 +17,7 @@ ALL_TOOL_DEFINITIONS: list[dict] = (
     FITNESS_TOOLS +
     FINANCE_TOOLS +
     DESKTOP_TOOLS +
+    WEB_SEARCH_TOOLS +
     MOOD_TOOLS +
     TODO_TOOLS +
     CALENDAR_TOOLS +
@@ -32,6 +34,7 @@ ALL_HANDLERS: dict = {
     **FITNESS_HANDLERS,
     **FINANCE_HANDLERS,
     **DESKTOP_HANDLERS,
+    **WEB_SEARCH_HANDLERS,
     **MOOD_HANDLERS,
     **TODO_HANDLERS,
     **CALENDAR_HANDLERS,
@@ -59,6 +62,7 @@ CATEGORY_TOOLS: dict[str, list[str]] = {
     "life_log": ["log_idea", "log_decision", "log_social", "log_learning", "get_recent_ideas", "get_recent_decisions", "search_life_log", "generate_self_portrait"],
     "personality": ["switch_personality", "list_personalities"],
     "desktop": ["capture_screen", "computer_control"],
+    "web_search": ["web_search"],
     "general": ["get_current_time", "list_daily_goals", "get_mood_summary"],
 }
 
