@@ -93,8 +93,8 @@ def query_mood(days: int = 7) -> dict:
             (start,)
         ).fetchall()
     logs = [{"date": r["date"], "mood": r["mood_score"], "energy": r["energy_score"], "context": r["context"]} for r in rows]
-    moods = [r["mood"] for r in rows if r["mood_score"]]
-    energies = [r["energy_score"] for r in rows if r["energy_score"]]
+    moods = [log["mood"] for log in logs if log["mood"]]
+    energies = [log["energy"] for log in logs if log["energy"]]
     return {
         "days": days,
         "entries": len(logs),
