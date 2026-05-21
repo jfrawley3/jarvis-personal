@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>J.A.R.V.I.S</title>
+<style>
+  :root {
+    --cyan: #00d4ff;
+    --cyan-dim: #0099bb;
+    --cyan-faint: #003344;
+    --bg: #080c10;
+    --bg2: #0d1117;
+    --bg3: #111820;
+    --text: #c8e8f0;
+    --text-dim: #5a7a88;
+    --green: #00ff9d;
+    --amber: #ffb800;
+    --red: #ff4060;
+    --border: #1a2a35;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Courier New', monospace; font-size: 13px; min-height: 100vh; }
+  .grid { display: grid; grid-template-columns: 260px 1fr 220px; grid-template-rows: 64px 1fr; min-height: 100vh; gap: 0; }
+
+  /* Header */
+  header { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; background: var(--bg2); border-bottom: 1px solid var(--border); }
+  .logo { font-size: 22px; letter-spacing: 6px; color: var(--cyan); font-weight: bold; }
+  .logo span { color: var(--text-dim); font-size: 11px; letter-spacing: 2px; display: block; margin-top: 2px; }
+  .header-right { display: flex; gap: 24px; align-items: center; }
+  .clock { color: var(--cyan); font-size: 20px; letter-spacing: 2px; }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+  /* Left panel */
+  .left { background: var(--bg2); border-right: 1px solid var(--border); overflow-y: auto; padding: 12px; }
+
+  /* Center */
+  .center { overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+
+  /* Right panel */
+  .right { background: var(--bg2); border-left: 1px solid var(--border); overflow-y: auto; padding: 12px; }
+
+  /* Cards */
+  .card { background: var(--bg3); border: 1px solid var(--border); border-radius: 4px; padding: 12px; }
+  .card-title { color: var(--cyan-dim); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+
+  /* Stats row */
+  .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 3px 0; }
+  .stat-label { color: var(--text-dim); font-size: 11px; }
+  .stat-value { color: var(--cyan); font-size: 13px; }
+  .stat-value.green { color: var(--green); }
+  .stat-value.amber { color: var(--amber); }
+  .stat-value.red { color: var(--red); }
+
+  /* Transcript */
+  .transcript { flex: 1; min-height: 200px; }
+  .msg { padding: 6px 0; border-bottom: 1px solid var(--border); }
+  .msg-time { color: var(--text-dim); font-size: 10px; }
+  .msg-text { color: var(--text); margin-top: 2px; line-height: 1.5; }
+  .msg-tools { font-size: 10px; color: var(--cyan-dim); margin-top: 2px; }
+
+  /* Finance bars */
+  .budget-bar { margin: 4px 0; }
+  .budget-label { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px; }
+  .bar-bg { background: var(--bg); height: 4px; border-radius: 2px; overflow: hidden; }
+  .bar-fill { height: 100%; background: var(--cyan); border-radius: 2px; transition: width 0.5s; }
+  .bar-fill.warn { background: var(--amber); }
+  .bar-fill.over { background: var(--red); }
+
+  /* Habit grid */
+  .habit-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; margin-top: 6px; }
+  .habit-cell { aspect-ratio: 1; border-radius: 2px; background: var(--bg); border: 1px solid var(--border); }
+  .habit-cell.done { background: var(--cyan); border-color: var(--cyan); }
+
+  /* Event stream */
+  .event { font-size: 11px; padding: 3px 0; border-bottom: 1px solid var(--border); display: flex; gap: 6px; }
+  .event-time { color: var(--text-dim); flex-shrink: 0; }
+  .event-text { color: var(--text); }
+
+  /* Section header in panels */
+  .section-h { font-size: 10px; letter-spacing: 2px; color: var(--cyan-dim); text-transform: uppercase; margin: 12px 0 6px; }
+  .section-h:first-child { margin-top: 0; }
+
+  /* Numbers big */
+  .big-num { font-size: 28px; color: var(--cyan); letter-spacing: 2px; }
+  .big-label { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+
+  /* Top metrics row */
+  .metrics-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .metric-card { background: var(--bg3); border: 1px solid var(--border); border-radius: 4px; padding: 12px; text-align: center; }
+
+  /* Todo list */
+  .todo-item { display: flex; gap: 6px; padding: 4px 0; font-size: 12px; border-bottom: 1px solid var(--border); }
+  .todo-done { color: var(--text-dim); text-decoration: line-through; }
+  .todo-over { color: var(--red); }
+  .todo-open { color: var(--text); }
+
+  /* Scrollbars */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); }
+
+  /* Loading state */
+  .loading { color: var(--text-dim); font-size: 11px; }
+  .error { color: var(--red); font-size: 11px; }
+</style>
+</head>
+<body>
+<div class="grid">
+  <!-- Header -->
+  <header>
+    <div class="logo">J · A · R · V · I · S<span>personal assistant // phase I</span></div>
+    <div class="header-right">
+      <div class="clock" id="clock">--:--:--</div>
+      <div style="text-align:right;font-size:11px;">
+        <div style="color:var(--green)">● ONLINE</div>
+        <div style="color:var(--text-dim)" id="hdr-tools">-- tools</div>
+      </div>
+      <div class="status-dot"></div>
+    </div>
+  </header>
+
+  <!-- Left: Health + Finance -->
+  <aside class="left">
+    <div class="section-h">// fitness</div>
+    <div class="card">
+      <div class="stat-row">
+        <span class="stat-label">STEPS</span>
+        <span class="stat-value" id="steps">---</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">SLEEP</span>
+        <span class="stat-value" id="sleep">--h</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">BODY BAT</span>
+        <span class="stat-value" id="body-battery">--</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">HRV</span>
+        <span class="stat-value" id="hrv">-- ms</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">REST HR</span>
+        <span class="stat-value" id="rhr">-- bpm</span>
+      </div>
+    </div>
+
+    <div class="section-h">// mood</div>
+    <div class="card">
+      <div class="stat-row">
+        <span class="stat-label">MOOD TODAY</span>
+        <span class="stat-value" id="mood-today">--/10</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">ENERGY</span>
+        <span class="stat-value" id="energy-today">--/10</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">7D AVG</span>
+        <span class="stat-value" id="mood-avg">--</span>
+      </div>
+    </div>
+
+    <div class="section-h">// expenses</div>
+    <div class="card" id="budget-card">
+      <div class="stat-row">
+        <span class="stat-label">MTD TOTAL</span>
+        <span class="stat-value" id="mtd-spend">$--</span>
+      </div>
+      <div id="budget-bars"></div>
+    </div>
+
+    <div class="section-h">// vocab</div>
+    <div class="card">
+      <div class="stat-row">
+        <span class="stat-label">TOTAL</span>
+        <span class="stat-value" id="vocab-total">--</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">MASTERED</span>
+        <span class="stat-value green" id="vocab-mastered">--</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">DUE TODAY</span>
+        <span class="stat-value amber" id="vocab-due">--</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Center: Transcript + Metrics -->
+  <main class="center">
+    <div class="metrics-row">
+      <div class="metric-card">
+        <div class="big-num" id="m-events">--</div>
+        <div class="big-label">Messages</div>
+      </div>
+      <div class="metric-card">
+        <div class="big-num" id="m-tools">--</div>
+        <div class="big-label">Tools</div>
+      </div>
+      <div class="metric-card">
+        <div class="big-num" id="m-errors" style="color:var(--green)">0</div>
+        <div class="big-label">Errors</div>
+      </div>
+      <div class="metric-card">
+        <div class="big-num" id="m-cost" style="color:var(--amber)">$--</div>
+        <div class="big-label">Today Cost</div>
+      </div>
+    </div>
+
+    <div class="card transcript">
+      <div class="card-title">// transcript</div>
+      <div id="transcript-list"><div class="loading">Connecting...</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">// todos</div>
+      <div id="todo-list"><div class="loading">Loading...</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">// api cost — 7d</div>
+      <div id="cost-chart" style="display:flex;gap:4px;align-items:flex-end;height:48px;"></div>
+    </div>
+  </main>
+
+  <!-- Right: Habits + Events -->
+  <aside class="right">
+    <div class="section-h">// habits 7d</div>
+    <div id="habit-list" class="card"></div>
+
+    <div class="section-h">// api usage</div>
+    <div class="card">
+      <div class="stat-row">
+        <span class="stat-label">CALLS TODAY</span>
+        <span class="stat-value" id="calls-today">--</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">COST TODAY</span>
+        <span class="stat-value amber" id="cost-today">$--</span>
+      </div>
+    </div>
+
+    <div class="section-h">// event stream</div>
+    <div class="card" style="max-height:300px;overflow-y:auto;">
+      <div id="event-stream"></div>
+    </div>
+
+    <div class="section-h">// system</div>
+    <div class="card">
+      <div class="stat-row">
+        <span class="stat-label">TELEGRAM</span>
+        <span class="stat-value" id="sys-tg">--</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">SCHEDULER</span>
+        <span class="stat-value green">13 jobs</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">DB</span>
+        <span class="stat-value green">SQLite WAL</span>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+// Clock
+setInterval(() => {
+  const now = new Date();
+  $('clock').textContent = now.toTimeString().slice(0, 8);
+}, 1000);
+
+// WebSocket
+let ws;
+function connectWS() {
+  ws = new WebSocket(`ws://${location.host}/ws`);
+  ws.onmessage = e => {
+    const data = JSON.parse(e.data);
+    if (data.type === 'event') addEvent(data.text);
+  };
+  ws.onclose = () => setTimeout(connectWS, 3000);
+  setInterval(() => ws.readyState === 1 && ws.send('ping'), 20000);
+}
+connectWS();
+
+function addEvent(text) {
+  const el = document.getElementById('event-stream');
+  const now = new Date().toTimeString().slice(0, 5);
+  el.insertAdjacentHTML('afterbegin', `<div class="event"><span class="event-time">${now}</span><span class="event-text">${text}</span></div>`);
+  const items = el.querySelectorAll('.event');
+  if (items.length > 30) items[items.length - 1].remove();
+}
+
+// Data fetch
+async function refresh() {
+  try {
+    const [status, dash] = await Promise.all([
+      fetch('/api/status').then(r => r.json()),
+      fetch('/api/dashboard').then(r => r.json())
+    ]);
+
+    // Header
+    $('hdr-tools').textContent = `${status.tools} tools`;
+    $('m-events').textContent = status.messages;
+    $('m-tools').textContent = status.tools;
+    $('m-cost').textContent = `$${status.today_cost_usd.toFixed(4)}`;
+    $('calls-today').textContent = status.today_api_calls;
+    $('cost-today').textContent = `$${status.today_cost_usd.toFixed(4)}`;
+    $('sys-tg').textContent = status.telegram ? '✓ connected' : '✗ offline';
+    $('sys-tg').className = `stat-value ${status.telegram ? 'green' : 'red'}`;
+
+    if (dash.error) return;
+
+    // Fitness
+    const fit = dash.fitness || {};
+    $('steps').textContent = fit.steps ? fit.steps.toLocaleString() : 'n/a';
+    $('sleep').textContent = fit.sleep_hours ? `${fit.sleep_hours}h` : 'n/a';
+    $('body-battery').textContent = fit.body_battery || 'n/a';
+    $('hrv').textContent = fit.hrv_ms ? `${fit.hrv_ms} ms` : 'n/a';
+    $('rhr').textContent = fit.resting_hr ? `${fit.resting_hr} bpm` : 'n/a';
+    const bb = fit.body_battery || 0;
+    $('body-battery').className = `stat-value ${bb >= 70 ? 'green' : bb >= 40 ? 'amber' : 'red'}`;
+
+    // Mood
+    const mood = dash.mood || {};
+    $('mood-today').textContent = mood.today_mood ? `${mood.today_mood}/10` : '--/10';
+    $('energy-today').textContent = mood.today_energy ? `${mood.today_energy}/10` : '--/10';
+    $('mood-avg').textContent = mood.week_avg_mood || '--';
+
+    // Finance
+    const fin = dash.finances || {};
+    $('mtd-spend').textContent = fin.total ? `$${fin.total.toFixed(2)}` : '$0.00';
+    const bud = (dash.budget || {}).categories || {};
+    const bars = $('budget-bars');
+    bars.innerHTML = '';
+    Object.entries(bud).slice(0, 5).forEach(([cat, d]) => {
+      const pct = d.pct || 0;
+      const cls = pct >= 100 ? 'over' : pct >= 75 ? 'warn' : '';
+      bars.innerHTML += `<div class="budget-bar">
+        <div class="budget-label"><span>${cat}</span><span>${pct}%</span></div>
+        <div class="bar-bg"><div class="bar-fill ${cls}" style="width:${Math.min(pct, 100)}%"></div></div>
+      </div>`;
+    });
+
+    // Vocab
+    const voc = dash.vocab || {};
+    $('vocab-total').textContent = voc.total ?? '--';
+    $('vocab-mastered').textContent = voc.mastered ?? '--';
+    $('vocab-due').textContent = voc.due_today ?? '--';
+
+    // Todos
+    const todos = (dash.todos || {}).todos || [];
+    const tl = $('todo-list');
+    if (todos.length === 0) { tl.innerHTML = '<div class="loading">All clear</div>'; }
+    else {
+      tl.innerHTML = todos.slice(0, 8).map(t => `
+        <div class="todo-item">
+          <span>${t.done ? '✅' : t.overdue ? '⚠️' : '→'}</span>
+          <span class="${t.done ? 'todo-done' : t.overdue ? 'todo-over' : 'todo-open'}">${t.title}</span>
+        </div>`).join('');
+    }
+
+    // Habits
+    const hl = $('habit-list');
+    const habits = (dash.habits || {}).top || [];
+    if (habits.length === 0) { hl.innerHTML = '<div class="loading">No habits yet</div>'; }
+    else {
+      hl.innerHTML = habits.map(h => `
+        <div class="stat-row">
+          <span class="stat-label">${h.habit}</span>
+          <span class="stat-value">${h.days}d</span>
+        </div>`).join('');
+    }
+
+    // Transcript (recent messages)
+    const msgs = dash.recent_messages || [];
+    const trl = $('transcript-list');
+    if (msgs.length === 0) { trl.innerHTML = '<div class="loading">No messages yet</div>'; }
+    else {
+      trl.innerHTML = msgs.map(m => `
+        <div class="msg">
+          <div class="msg-time">${m.time}</div>
+          <div class="msg-text">${m.msg}</div>
+        </div>`).join('');
+    }
+
+    // Cost chart
+    const costs = dash.cost_7d || [];
+    const chart = $('cost-chart');
+    if (costs.length > 0) {
+      const maxC = Math.max(...costs.map(c => c.cost), 0.001);
+      chart.innerHTML = costs.reverse().map(c => {
+        const h = Math.round((c.cost / maxC) * 44);
+        return `<div title="${c.date}: $${c.cost}" style="background:var(--cyan-dim);width:${Math.floor(100/costs.length)-2}%;height:${h}px;border-radius:2px 2px 0 0;margin-bottom:0"></div>`;
+      }).join('');
+    }
+
+  } catch (e) {
+    console.error('Refresh error:', e);
+  }
+}
+
+refresh();
+setInterval(refresh, 30000);
+</script>
+</body>
+</html>
